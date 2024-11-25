@@ -20,8 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
+<link rel="stylesheet" href="/css/style.css">
 <form method="post">
+    <h1>Вход</h1>
     <input type="email" name="email" required placeholder="Email">
     <input type="password" name="password" required placeholder="Password">
-    <button type="submit">Login</button>
+    <div>
+        <button type="submit">Login</button>
+    </div>
+
+    <div style="text-align: center; margin-top:10px">
+        <a href="/registr.php">Нету аккаунта?</a>
+    </div>
 </form>
