@@ -1,30 +1,37 @@
 <?php
-require 'db.php';
-
+require 'database.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    if ($stmt->execute([$username, $email, $password])) {
+    $pdo = connectDB();
+
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':password', $password);
+
+    try {
+        $stmt->execute();
         echo "Registration successful!";
-    } else {
-        echo "Error: " . $stmt->error;
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
     }
 }
-?>
-<link rel="stylesheet" href="/css/style.css">
-<form method="post">
-    <h1>Регистрация</h1>
-    <input type="text" name="username" required placeholder="Username">
-    <input type="email" name="email" required placeholder="Email">
-    <input type="password" name="password" required placeholder="Password">
-    <div>
-        <button type="submit">Register</button>
+?>  
+    <link rel="stylesheet" href="css/style.css">
+    <div class="menu-list">
+        <a href="/create_post.php">Create post</a>
+        <a href="view_posts.php">Check posts</a>
+        <a href="/view_accounts.php">Admin panel</a>
+        <a href="/edit_account.php">Change your account</a>
     </div>
-    <div style="text-align: center; margin-top:10px">
-        <a href="/login.php">Есть аккаунт?</a>
-    </div>
+<form method="POST">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Register</button>
+    <a href="/login.php">Have account?</a>
 </form>

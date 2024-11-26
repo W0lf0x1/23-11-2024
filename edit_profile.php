@@ -1,35 +1,39 @@
 <?php
-require 'db.php';
-
 session_start();
+require 'database.php';
 
 if (!isset($_SESSION['user_id'])) {
-    die("Unauthorized access.");
+    header('Location: login.php');
+    exit;
 }
 
 $pdo = connectDB();
-$user_id = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?");
-    if ($stmt->execute([$username, $email, $password, $user_id])) {
-        echo "Profile updated!";
-    } else {
-        echo "Error: " . $stmt->error;
-    }
-} else {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch();
+    $stmt = $pdo->prepare("UPDATE users SET username = :username, email = :email, password = :password WHERE id = :id");
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':password', $password);
+    $stmt->bindParam(':id', $userId);
+
+    $stmt->execute();
+    echo "Account updated!";
 }
+
+$stmt = $pdo-> prepare("SELECT * FROM users WHERE id = :id");
+$stmt->bindParam(':id', $userId);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
-<form method="post">
-    <input type="text" name="username" value="<?php echo $user['username']; ?>" required placeholder="Username">
-    <input type="email" name="email" value="<?php echo $user['email']; ?>" required placeholder="Email">
-    <input type="password" name="password" required placeholder="New Password">
-    <button type="submit">Update</button>
+    <link rel="stylesheet" href="css/style.css">
+<form method="POST">
+    <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+    <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+    <input type="password" name="password" placeholder="New Password (leave blank to keep current)">
+    <button type="submit">Update Account</button>
 </form>
